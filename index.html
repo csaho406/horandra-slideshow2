@@ -1,1 +1,123 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+    .slideshow {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      overflow: hidden;
+      padding: 10px 0;
+    }
+    .slideshow-track {
+      display: flex;
+      transition: transform 1s ease-in-out;
+    }
+    .slide {
+      flex-shrink: 0;
+      width: clamp(120px, 22vw, 180px);
+      margin-right: 10px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .slide a img {
+      width: 100%;
+      display: block;
+      border-radius: 6px 6px 0 0;
+    }
+    .buy-button {
+      background: #39bade;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 10px 0;
+      width: 100%;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      border-radius: 0 0 6px 6px;
+    }
+    .slide:hover .buy-button {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="slideshow">
+    <div class="slideshow-track" id="track"></div>
+  </div>
 
+  <script>
+    const track = document.getElementById('track');
+    let isTransitioning = false;
+    const interval = 2000;
+
+    // XML feed betöltése GitHubról
+    fetch('feed250915.tsv')
+      .then(response => response.text())
+      .then(xmlText => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, 'application/xml');
+        const items = xml.querySelectorAll('item');
+
+        // csak az első 10 terméket rakjuk ki
+        items.forEach((item, index) => {
+          if (index >= 10) return;
+
+          const title = item.querySelector('title')?.textContent || '';
+          const link = item.querySelector('link')?.textContent || '#';
+          const image = item.querySelector('g\\:image_link, image_link')?.textContent || '';
+          const id = item.querySelector('g\\:id, id')?.textContent || '';
+
+          if (!image || !id) return;
+
+          const slide = document.createElement('div');
+          slide.className = 'slide';
+          slide.innerHTML = `
+            <a href="${link}" target="_blank">
+              <img src="${image}" alt="${title}">
+            </a>
+            <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${id}&quantity=1', '_blank')">Kosárba</button>
+          `;
+          track.appendChild(slide);
+        });
+      });
+
+    function scrollNext() {
+      if (isTransitioning) return;
+      isTransitioning = true;
+
+      const firstSlide = track.children[0];
+      const slideWidth = Math.round(firstSlide.offsetWidth + 10);
+
+      track.style.transition = 'transform 1s ease-in-out';
+      track.style.transform = `translateX(-${slideWidth}px)`;
+
+      setTimeout(() => {
+        track.style.transition = 'none';
+        track.style.transform = 'translateX(0)';
+        track.appendChild(firstSlide);
+        isTransitioning = false;
+      }, 1000);
+    }
+
+    setInterval(scrollNext, interval);
+  </script>
+</body>
+</html>
