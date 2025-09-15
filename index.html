@@ -64,60 +64,54 @@
   </div>
 
   <script>
-    const track = document.getElementById('track');
-    let isTransitioning = false;
-    const interval = 2000;
+const track = document.getElementById('track');
+const interval = 2000;
 
-    // XML feed betöltése GitHubról
-    fetch('feed250915.tsv')
-      .then(response => response.text())
-      .then(xmlText => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, 'application/xml');
-        const items = xml.querySelectorAll('item');
+// TSV feed betöltése GitHubról
+fetch('feed.tsv')
+  .then(response => response.text())
+  .then(tsvText => {
+    const lines = tsvText.split('\n');
+    const headers = lines[0].split('\t');
+    const items = lines.slice(1).map(line => {
+      const cols = line.split('\t');
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = cols[i]);
+      return obj;
+    }).filter(item => item['image_link'] && item['id']); // csak ha van kép és ID
 
-        // csak az első 10 terméket rakjuk ki
-        items.forEach((item, index) => {
-          if (index >= 10) return;
+    // random 10 termék kiválasztása
+    const shuffled = items.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
 
-          const title = item.querySelector('title')?.textContent || '';
-          const link = item.querySelector('link')?.textContent || '#';
-          const image = item.querySelector('g\\:image_link, image_link')?.textContent || '';
-          const id = item.querySelector('g\\:id, id')?.textContent || '';
+    selected.forEach(item => {
+      const slide = document.createElement('div');
+      slide.className = 'slide';
+      slide.innerHTML = `
+        <a href="${item.link}" target="_blank">
+          <img src="${item.image_link}" alt="${item.title}">
+        </a>
+        <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${item.id}&quantity=1', '_blank')">Kosárba</button>
+      `;
+      track.appendChild(slide);
+    });
+  });
 
-          if (!image || !id) return;
+function scrollNext() {
+  const firstSlide = track.children[0];
+  const slideWidth = Math.round(firstSlide.offsetWidth + 10);
 
-          const slide = document.createElement('div');
-          slide.className = 'slide';
-          slide.innerHTML = `
-            <a href="${link}" target="_blank">
-              <img src="${image}" alt="${title}">
-            </a>
-            <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${id}&quantity=1', '_blank')">Kosárba</button>
-          `;
-          track.appendChild(slide);
-        });
-      });
+  track.style.transition = 'transform 1s ease-in-out';
+  track.style.transform = `translateX(-${slideWidth}px)`;
 
-    function scrollNext() {
-      if (isTransitioning) return;
-      isTransitioning = true;
+  setTimeout(() => {
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+    track.appendChild(firstSlide);
+  }, 1000);
+}
 
-      const firstSlide = track.children[0];
-      const slideWidth = Math.round(firstSlide.offsetWidth + 10);
-
-      track.style.transition = 'transform 1s ease-in-out';
-      track.style.transform = `translateX(-${slideWidth}px)`;
-
-      setTimeout(() => {
-        track.style.transition = 'none';
-        track.style.transform = 'translateX(0)';
-        track.appendChild(firstSlide);
-        isTransitioning = false;
-      }, 1000);
-    }
-
-    setInterval(scrollNext, interval);
-  </script>
+setInterval(scrollNext, interval);
+</script>
 </body>
 </html>
