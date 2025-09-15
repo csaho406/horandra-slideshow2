@@ -65,39 +65,43 @@
 
   <script>
 const track = document.getElementById('track');
-const interval = 2000;
+const interval = 3000; // 3 másodperc
+let items = [];
 
 // TSV feed betöltése GitHubról
 fetch('feed.tsv')
   .then(response => response.text())
   .then(tsvText => {
-    const lines = tsvText.split('\n');
+    const lines = tsvText.trim().split('\n');
     const headers = lines[0].split('\t');
-    const items = lines.slice(1).map(line => {
+    items = lines.slice(1).map(line => {
       const cols = line.split('\t');
       const obj = {};
       headers.forEach((h, i) => obj[h] = cols[i]);
       return obj;
-    }).filter(item => item['image_link'] && item['id']); // csak ha van kép és ID
+    }).filter(item => item['image_link'] && item['id']);
 
-    // random 10 termék kiválasztása
-    const shuffled = items.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 10);
-
-    selected.forEach(item => {
-      const slide = document.createElement('div');
-      slide.className = 'slide';
-      slide.innerHTML = `
-        <a href="${item.link}" target="_blank">
-          <img src="${item.image_link}" alt="${item.title}">
-        </a>
-        <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${item.id}&quantity=1', '_blank')">Kosárba</button>
-      `;
-      track.appendChild(slide);
-    });
+    // kezdeti 10 random termék
+    const shuffled = [...items].sort(() => 0.5 - Math.random());
+    const initial = shuffled.slice(0, 10);
+    initial.forEach(addSlide);
   });
 
+function addSlide(item) {
+  const slide = document.createElement('div');
+  slide.className = 'slide';
+  slide.innerHTML = `
+    <a href="${item.link}" target="_blank">
+      <img src="${item.image_link}" alt="${item.title}">
+    </a>
+    <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${item.id}&quantity=1', '_blank')">Kosárba</button>
+  `;
+  track.appendChild(slide);
+}
+
 function scrollNext() {
+  if (track.children.length === 0) return;
+
   const firstSlide = track.children[0];
   const slideWidth = Math.round(firstSlide.offsetWidth + 10);
 
@@ -107,7 +111,14 @@ function scrollNext() {
   setTimeout(() => {
     track.style.transition = 'none';
     track.style.transform = 'translateX(0)';
-    track.appendChild(firstSlide);
+    // első elem eltávolítása
+    track.removeChild(firstSlide);
+
+    // új, random termék hozzáadása
+    if (items.length > 0) {
+      const randomItem = items[Math.floor(Math.random() * items.length)];
+      addSlide(randomItem);
+    }
   }, 1000);
 }
 
