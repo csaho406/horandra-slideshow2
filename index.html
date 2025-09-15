@@ -38,24 +38,17 @@
       border-radius: 6px 6px 0 0;
     }
     .buy-button {
-      background: #39bade;
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-      padding: 10px 0;
-      width: 100%;
-      border: none;
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      border-radius: 0 0 6px 6px;
-    }
-    .slide:hover .buy-button {
-      opacity: 1;
-      pointer-events: auto;
-    }
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: #39bade; 
+  border-radius: 0 0 6px 6px;
+  height: 20px; /* opcionális, hogy látszódjon a hover */
+}
+
+.slide:hover .buy-button {
+  opacity: 1;
+}
   </style>
 </head>
 <body>
@@ -94,7 +87,7 @@ function addSlide(item) {
     <a href="${item.link}" target="_blank">
       <img src="${item.image_link}" alt="${item.title}">
     </a>
-    <button class="buy-button" onclick="window.open('https://www.horandrashop.hu/index.php?route=checkout/cart&product_id=${item.id}&quantity=1', '_blank')">Kosárba</button>
+    <div class="buy-button"></div>
   `;
   track.appendChild(slide);
 }
