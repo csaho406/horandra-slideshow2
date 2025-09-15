@@ -27,19 +27,20 @@
       margin-right: 10px;
       background: white;
       border-radius: 6px;
-      box-shadow: 0 0px 0px rgba(0,0,0,0);
-      display: flex;
-      flex-direction: column;
+      overflow: hidden;
+      box-shadow: none;
+      display: inline-block;
       align-items: center;
-      transition: background 0.3s ease;
+      transition: box-shadow 0.3s ease;
     }
     .slide:hover {
-  background: #39bade;
+  box-shadow: 0 4px 12px rgba(57, 186, 222, 0.7);
     }
     .slide a img {
       width: 100%;
       display: block;
-      border-radius: 6px 6px 0 0;
+      height: auto;
+      border-radius: 6px;
     }
   </style>
 </head>
